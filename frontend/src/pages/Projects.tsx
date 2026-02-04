@@ -2,9 +2,11 @@ import React, { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Project } from "../types";
 import { Link } from "react-router-dom";
-import {  ArrowBigDown, ArrowBigDownDashIcon, EyeIcon, EyeOffIcon, FullscreenIcon, LaptopIcon, Loader2Icon, MessageSquareIcon, SaveIcon, Smartphone, TabletIcon, XIcon } from "lucide-react";
-import { dummyConversations, dummyProjects } from "../assets/assets";
+import {  ArrowBigDownDashIcon, EyeIcon, EyeOffIcon, FullscreenIcon, LaptopIcon, Loader2Icon, MessageSquareIcon, SaveIcon, Smartphone, TabletIcon, XIcon } from "lucide-react";
+import { dummyConversations, dummyProjects, dummyVersion } from "../assets/assets";
 import favicon from '../assets/favicon.svg'
+import Sidebar from "../components/Sidebar";
+import ProjectPreview, { type ProjectPreviewRef } from "../components/ProjectPreview";
 const Projects = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
@@ -15,17 +17,28 @@ const Projects = () => {
     "desktop",
   );
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const [issaving, setisSaving] = React.useState(false);
+  const [isSaving, setisSaving] = React.useState(false);
+
+  const previewRef=React.useRef<ProjectPreviewRef>(null)
   const fetchProject = async () => {
     const project=dummyProjects.find((p) => p.id === projectId) || null;
     setTimeout(() => {
       if(project){
-        setProject({...project,conversation:dummyConversations});
+        setProject({...project,conversation:dummyConversations,versions: dummyVersion});
         setLoading(false);
         setIsGenerating(project.current_code ? false : true);
       }
     },2000)
   };
+  const togglePublish=async()=>{
+    if(project?.isPublished){
+      setProject({...project,isPublished:false});
+    }else{
+      setProject({...project,isPublished:true});
+    }
+  }
+  const downloadCode=()=>{}
+  const saveProject=async()=>{}
   useEffect(() => {
     fetchProject();
   }, [projectId]);
@@ -54,7 +67,7 @@ const Projects = () => {
       <div className="flex items-center gap-2 sm:min-w-90 text-nowrap">
         <img src={favicon} alt="logo" className="h-6 cursor-pointer" onClick={()=>navigate('/')}/>
         <div className="max-w-64 sm:max-w-xs">
-          <p className="text-sm text-medium captalize truncate">{project.name}</p>
+          <p className="text-sm font-medium capitalize truncate">{project.name}</p>
           <p className="text-xs text-gray-400 mt-0.5">Previewing Latest Version</p>
         </div>
         <div className="sm:hidden flex-1 flex justify-end">
@@ -72,12 +85,13 @@ const Projects = () => {
       </div>
 
       <div className="flex items-center justify-end gap-3 flex-1 text-xs sm:text-sm">
-        <button>
-          <SaveIcon size={16} /> Save
+        <button onClick={()=>saveProject()} disabled={isSaving} className="max-sm:hidden bg-gray-800 hover:bg-gray-700 text-white px-3.5 py-1 flex items-center gap-2 rounded sm:rounded-sm transition-colors border border-gray-700">
+          {isSaving ? <Loader2Icon className="size-4 animate-spin"/> : <SaveIcon size={16} />}
+          Save
         </button>
-        <Link target="_blank" to={`/preview/${projectId}`}><FullscreenIcon size={16}/> Preview</Link>
-        <button> <ArrowBigDownDashIcon size={16}/>Download</button>
-        <button>
+        <Link className="flex items-center gap-2 px-4 py-1 rounded sm:rounded-sm border border-gray-700 hover:border-gray-500 transition-colors" target="_blank" to={`/preview/${projectId}`}><FullscreenIcon size={16}/> Preview</Link>
+        <button onClick={()=>downloadCode()} className="bg-linear-to-br from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 text-white px-3.5 py-1 flex items-center gap-2 rounded sm:rounded-sm transition-colors"> <ArrowBigDownDashIcon size={16}/>Download</button>
+        <button onClick={()=>togglePublish()} className="bg-linear-to-br from-indigo-700 to-indigo-600 hover:from-indigo-600 hover:to-indigo-500 text-white px-3.5 py-1 flex items-center gap-2 rounded sm:rounded-sm transition-colors"> 
           {project.isPublished ? <EyeOffIcon size={16}/> : <EyeIcon size={16}/>}
           {
             project.isPublished ? "Unpublish" : "Publish"
@@ -85,7 +99,15 @@ const Projects = () => {
           </button>
       </div>
     </div>
-  </div>):
+    <div className="flex-1 flex overflow-auto">
+      <Sidebar isMenuOpen={isMenuOpen} project={project} setProject={(p)=>setProject(p)} isGenerating={isGenerating}
+          setIsGenerating={setIsGenerating}/>
+      <div className="flex-1 p-2 pl-0">
+        <ProjectPreview  ref={previewRef} project={project} isGenerating={isGenerating} device={device}/>
+      </div>
+    </div>
+  </div>
+  ):
   (
   <div className="flex items-center justify-center h-screen">
     <p className="text-2xl font-medium text-gray-200">Unable to load Project!</p>
