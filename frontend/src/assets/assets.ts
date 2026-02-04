@@ -32,9 +32,9 @@ export const appPlans = [
     ]
 
 export const dummyUser = {
-    name: "GreatStack",
+    name: "Dhairya",
     id: 'xyz',
-    email: 'test@greatstack.dev'
+    email: 'dhairya@test.com'
 }
 
 export const dummyProjects = [
