@@ -37,7 +37,19 @@ const Projects = () => {
       setProject({...project,isPublished:true});
     }
   }
-  const downloadCode=()=>{}
+  const downloadCode=()=>{
+    const code=previewRef.current?.getCode() || project?.current_code
+    if(!code){
+      if(isGenerating) return;
+      return;
+    }
+    const element=document.createElement('a')
+    const file=new Blob([code],{type:'text/html'})
+    element.href=URL.createObjectURL(file)
+    element.download="index.html"
+    document.body.appendChild(element)
+    element.click();
+  }
   const saveProject=async()=>{}
   useEffect(() => {
     fetchProject();
