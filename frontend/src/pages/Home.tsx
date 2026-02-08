@@ -84,7 +84,7 @@ const Home = () => {
         <img className="max-w-28 md:max-w-32 hover:brightness-125 transition-all" src="https://saasly.prebuiltui.com/assets/companies-logo/walmart.svg" alt="" />
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
