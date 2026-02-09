@@ -1,14 +1,35 @@
 import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import api from '@/configs/axios';
+import { authClient } from '@/lib/auth-client';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const onSubmitHandler = (e) => {
+  const {data:session}=authClient.useSession()
+  const navigate=useNavigate()
+  const onSubmitHandler = async(e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setTimeout(() => setLoading(false), 3000);
+    try {
+      if(!session?.user){
+        toast.error("Please login to create a website.");
+        return;
+      }
+      else if(!input.trim()){
+        toast.error("Please enter a valid description for your website.");
+        return;
+      } 
+      setLoading(true)
+      const {data}=await api.post('/api/user/project',{initial_prompt:input})
+      setLoading(false);
+      navigate(`/projects/${data.projectId}`); 
+    } catch (error: any) {
+      setLoading(false);
+      toast.error(error?.response?.data?.message || "An error occurred while creating the website. Please try again.");
+      console.log("Error creating project:", error);
+    }
   };
 
   return (

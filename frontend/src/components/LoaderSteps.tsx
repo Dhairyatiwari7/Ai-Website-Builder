@@ -29,7 +29,7 @@ const LoaderSteps = () => {
         <Icon className="w-8 h-8 text-white opacity-80 animate-bounce"/>
       </div>
       <p className="mt-8 text-lg font-light text-white/90 text-wide
-        transition-all duration-700 ease-in-out opacity-100" key={current}>{steps[current].lablel}</p>
+        transition-all duration-700 ease-in-out opacity-100" key={current}>{steps[current].label}</p>
       <p className="text-xs text-gray-400 mt-2 transition-opacity duration-700 opacity-100">This may take around 2-3 minutes...</p>
     </div>
   )

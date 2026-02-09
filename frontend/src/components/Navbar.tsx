@@ -1,13 +1,35 @@
-import React,{ useState } from "react";
+import React,{ useEffect, useState } from "react";
 import {assets} from "../assets/assets";
 import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/lib/auth-client";
 import {UserButton} from '@daveyplate/better-auth-ui'
+import { toast } from "sonner";
+import api from "@/configs/axios";
 const Navbar = () => {
 
     const [menuOpen, setMenuOpen] = useState(false);
+    const [credits,setCredits]=useState(0);
     const Navigate=useNavigate();
     const {data : session}=authClient.useSession()
+    const getUserCredits=async()=>{
+        try {
+            const {data}=(await api.get(`/api/user/credits`))
+            if(!data){
+                toast.error("Failed to fetch user credits")
+                return;
+            }
+            console.log("User Credits:",data.credit)
+            setCredits(data.credit)
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message || "Something went wrong while fetching user credits")
+            console.log(error)
+        }
+    }
+    useEffect(()=>{
+        if(session?.user){
+            getUserCredits()
+        }
+    },[session?.user])
     return (
         <>
             <nav className="z-50 flex items-center justify-between w-full py-4 px-4 md:px-16 lg:px-24 xl:px-32 backdrop-blur border-b text-white border-slate-800">
@@ -29,7 +51,11 @@ const Navbar = () => {
                         Get started
                     </button>) : 
                     (
-                        <UserButton size='icon'/>
+                        <>
+                            <button className="bg-white/10 px-5 py-1.5 text-xs sm:text-sm border text-gray-200 rounded full
+                            ">Credits : <span className="text-indigo-300">{credits}</span></button>
+                            <UserButton size='icon'/>
+                        </>
                     )}
                     <button
                     id="open-menu"
