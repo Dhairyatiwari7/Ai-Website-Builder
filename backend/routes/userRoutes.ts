@@ -8,7 +8,7 @@ userRouter.get('/credits',protect,getUserCredits)
 userRouter.post('/project',protect,createNewProject)  
 userRouter.get('/project/:projectId',protect,getUserProjectById)
 userRouter.get('/projects',protect,getUserProjects)
-userRouter.patch('/publish-toggle/:projectId',protect,toggleProjectPublishStatus)
+userRouter.get('/publish-toggle/:projectId',protect,toggleProjectPublishStatus)
 userRouter.post('/purchase',protect,purchaseCredits)
 
 export default userRouter

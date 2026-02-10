@@ -2,9 +2,9 @@ import React, { useEffect } from 'react'
 import type { Project } from '../types';
 import { Loader2Icon, } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { dummyProjects } from '../assets/assets';
 import Footer from '../components/Footer';
-
+import api from '@/configs/axios';
+import {toast} from 'sonner'
 const Community = () => {
   const [loading, setLoading] = React.useState(true);
   const [projects, setProjects] = React.useState<Project[]>([]);
@@ -14,9 +14,14 @@ const Community = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        setProjects(dummyProjects);
-      } catch (err) {
-        console.error(err);
+        setLoading(true)
+        const {data}=await api.get(`/api/project/published`)
+        setProjects(data.project);
+        setLoading(true)
+      } catch (error:any) {
+        setLoading(false)
+        toast.error(error?.response?.data?.message || "An error occurred while loading project for preview");
+        console.error(error);
       } finally {
         setLoading(false);
       }

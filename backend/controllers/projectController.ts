@@ -279,7 +279,7 @@ export const getProjectById = async (req: Request, res: Response) => {
 }
 export const saveProjectCode = async (req: Request, res: Response) => {
     try {
-        const {userId}=req.userId
+        const userId=req.userId
         if(!userId){
             return res.status(401).json({message:"Invalid user"})
         }

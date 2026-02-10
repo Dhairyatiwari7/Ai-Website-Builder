@@ -36,10 +36,13 @@ const Projects = () => {
     }
   };
   const togglePublish=async()=>{
-    if(project?.isPublished){
-      setProject({...project,isPublished:false});
-    }else{
-      setProject({...project,isPublished:true});
+    try {
+      const {data}=await api.get(`/api/user/publish-toggle/${projectId}`)
+      toast.success(data.message)
+      setProject((prev)=> prev? ({...prev,isPublished: !prev.isPublished}):null)
+    } catch (error: any ) {
+      toast.error(error?.response?.data?.message || "An error occurred toggling publish statu. Please try again.");
+      console.log("Error in toggling publish status:", error);
     }
   }
   const downloadCode=()=>{
@@ -55,7 +58,23 @@ const Projects = () => {
     document.body.appendChild(element)
     element.click();
   }
-  const saveProject=async()=>{}
+  const saveProject=async()=>{
+    if(!previewRef.current) return
+    const code=previewRef.current.getCode()
+    if(!code) return;
+    try {
+      setisSaving(true)
+      const {data}=await api.put(`/api/project/save/${projectId}`,{
+        code:code
+      })
+      toast.success(data.message)
+    } catch (error : any) {
+      toast.error(error?.response?.data?.message || "An error occurred while Saving the changes. Please try again.");
+      console.log("Error in saving project:", error);
+    }finally{
+      setisSaving(false)
+    }
+  }
 
   useEffect(()=>{
     if(session?.user){
