@@ -5,6 +5,7 @@ import { auth } from "./lib/auth.js";
 import cors from "cors";
 import userRouter from './routes/userRoutes.js';
 import projectRouter from './routes/projectRoutes.js';
+import { stripeWebHook } from './controllers/StripeWebhook.js';
 
 
 const app=express();
@@ -15,7 +16,7 @@ const corsOptions = {
     credentials: true,
 }
 app.use(cors(corsOptions));
-
+app.post('/api/stripe',express.raw({type: 'application/json'}),stripeWebHook)
 app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(express.json({
     limit: '50mb'

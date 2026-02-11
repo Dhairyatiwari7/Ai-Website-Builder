@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
 import openai from "../configs/openAi.js";
-
+import Stripe from 'stripe'
+import 'dotenv/config';
 export const getUserCredits = async (req: Request, res: Response) => {
     const userId = req.userId
     try {
@@ -141,7 +142,7 @@ No markdown. No explanations.
                         data: {
                             role: 'assistant',
                             content: "Unable to generate code, please try again",
-                            projectId: project.id   
+                            projectId: project.id
                         }
 
                     })
@@ -263,7 +264,7 @@ export const getUserProjects = async (req: Request, res: Response) => {
 }
 
 export const toggleProjectPublishStatus = async (req: Request, res: Response) => {
-    const userId = req.userId
+    const userId = req.userId;
     try {
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized access" })
@@ -290,13 +291,73 @@ export const toggleProjectPublishStatus = async (req: Request, res: Response) =>
 }
 
 export const purchaseCredits = async (req: Request, res: Response) => {
-    const userId = req.userId
+    const userId = req.userId; 
+    
     try {
         if (!userId) {
-            return res.status(401).json({ message: "Unauthorized request!" })
+            return res.status(401).json({ message: "Unauthorized request!" });
         }
+
+        interface Plan {
+            credits: number;
+            amount: number;
+        }
+
+        const plans: Record<string, Plan> = {
+            basic: { credits: 100, amount: 5 },
+            pro: { credits: 400, amount: 19 },
+            enterprise: { credits: 1000, amount: 49 }
+        };
+
+        const { planId } = req.body as { planId: string };
+        
+        if (!planId || !plans[planId as keyof typeof plans]) {
+            return res.status(400).json({ message: "Invalid plan ID" });
+        }
+
+        const origin = req.headers.origin as string;
+        const plan = plans[planId as keyof typeof plans];
+
+        const transaction = await prisma.transaction.create({
+            data: {
+                userId: userId,
+                planId: planId,
+                amount: plan.amount,
+                credits: plan.credits
+            }
+        });
+
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+        
+        const session = await stripe.checkout.sessions.create({
+            success_url: `${origin}/loading`,
+            cancel_url: `${origin}/`,
+            line_items: [
+                {
+                    price_data: {  
+                        currency: 'usd',
+                        product_data: {  
+                            name: `AiSiteBuilder - ${plan.credits} credits`
+                        },
+                        unit_amount: plan.amount * 100  
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            metadata: {
+                transactionId: transaction.id,
+                appId: 'AI-Site-Builder'
+            },
+            expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+        });
+
+        res.json({ payment_link: session.url });
     } catch (error: any) {
-        console.log(error.code || error.message)
-        return res.status(500).json({ message: "Something went Wrong!" })
+        console.error('Purchase error:', error);  
+        return res.status(500).json({ 
+            message: "Purchase failed. Please try again.",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
-}
+};
