@@ -15,7 +15,7 @@ export interface ProjectPreviewRef{
 
 };
 const ProjectPreview = forwardRef<ProjectPreviewRef,ProjectPreviewProps>(({project,isGenerating,device='desktop',showEditorPanel=true},ref) => {
-    const iframeRef=useRef<HTMLFrameElement>(null)
+    const iframeRef=useRef<HTMLIFrameElement>(null)
     const [selectedElement,setSelectedElement]=React.useState<any>(null)
     const handleUpdate=(updates:any)=>{
         if(iframeRef.current?.contentWindow){
